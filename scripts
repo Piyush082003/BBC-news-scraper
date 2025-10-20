@@ -1,0 +1,32 @@
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+
+# Step 1: Fetch BBC News homepage
+url = "https://www.bbc.com/news"
+response = requests.get(url)
+soup = BeautifulSoup(response.text, "html.parser")
+
+# Step 2: Extract top headlines
+headlines_data = []
+headlines = soup.find_all("h2")
+
+for headline in headlines[:20]:  # Top 20 headlines
+    text = headline.get_text(strip=True)
+    parent_link = headline.find_parent("a")
+    if parent_link and "href" in parent_link.attrs:
+        link = "https://www.bbc.com" + parent_link["href"]
+    else:
+        link = "No link"
+    if text:
+        headlines_data.append({"Headline": text, "Link": link})
+
+# Step 3: Convert to DataFrame
+df = pd.DataFrame(headlines_data)
+
+# Step 4: Save to CSV and Excel
+df.to_csv("bbc_headlines.csv", index=False, encoding="utf-8")
+df.to_excel("bbc_headlines.xlsx", index=False)
+
+print("✅ Top BBC News headlines scraped successfully!")
+print("📁 Saved as 'bbc_headlines.csv' and 'bbc_headlines.xlsx'")
